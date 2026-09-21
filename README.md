@@ -48,6 +48,18 @@ flowchart TD
 
 ---
 
+## 👥 Actores de Negocio y Roles del Sistema
+
+| Actor / Disparador | Tipo | Bounded Contexts | Comandos / Acciones Principales | Historias de Usuario |
+| :--- | :---: | :--- | :--- | :---: |
+| **👤 Administrador** | Humano (Backoffice) | `inventory`, `analytics` | • Registrar nuevos productos con especificaciones técnicas de PC.<br/>• Ajustar stock físico y mantener historial de auditoría.<br/>• Consultar y exportar reportes semanales de ventas y reposición. | **HU1, HU2, HU3, HU7** |
+| **👤 Cliente Mayorista** | Humano (B2B) | `cart`, `ordering`, `notification` | • Gestionar ítems en el carrito de compras.<br/>• Radicar órdenes de compra al por mayor con validación de stock.<br/>• Modificar pedidos antes de su confirmación (estado `PENDIENTE`).<br/>• Recibir notificaciones de progreso de órdenes y carritos abandonados. | **HU4, HU5, HU6, HU8** |
+| **👤 Operador Logístico** | Humano (Operaciones) | `ordering` | • Despachar pedidos confirmados (`DISPATCHED`).<br/>• Marcar pedidos como entregados en destino (`DELIVERED`). | **HU6** |
+| **⏱️ Scheduler de Stock** | Sistema (Temporizado) | `inventory`, `analytics` | • Evaluar periódicamente niveles de inventario frente a umbrales mínimos.<br/>• Disparar alertas de reposición crítica para abastecimiento. | **HU3** |
+| **⏱️ Scheduler de Inactividad** | Sistema (Temporizado) | `cart`, `notification` | • Evaluar tiempo de inactividad de carritos abiertos.<br/>• Marcar carritos como abandonados para activar campañas de recuperación. | **HU8** |
+
+---
+
 ## 🧭 Catálogo Navegable de Documentación Técnica (Living Documentation)
 
 Toda la arquitectura se encuentra especificada en código y diagramas Mermaid interactivos:
