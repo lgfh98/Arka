@@ -94,14 +94,25 @@ La base de datos en memoria H2 se precarga automáticamente con los siguientes r
 ```
 El servidor iniciará en `http://localhost:8080`.
 
-### 2. Acceso a la Consola H2 en Memoria
+### 2. Acceso a la Consola H2 Web
 * **URL**: [http://localhost:8080/h2-console](http://localhost:8080/h2-console)
 * **JDBC URL**: `jdbc:h2:mem:arkadb`
 * **User Name**: `sa`
 * **Password**: *(en blanco)*
 
+### 3. Conexión desde DataGrip / DBeaver / Clientes Externos (TCP Server)
+Para conectarte a la base de datos en memoria mientras el backend está corriendo (`./gradlew bootRun`), usa el servidor TCP H2 habilitado en el puerto `9092`:
+
+* **Driver**: H2
+* **Connection Type / URL format**: `URL only`
+* **JDBC URL**: `jdbc:h2:tcp://localhost:9092/mem:arkadb`
+* **User**: `sa`
+* **Password**: *(dejar vacío)*
+
+> 💡 **Nota DataGrip**: Crea un nuevo Data Source con **Driver: H2**, selecciona el modo de conexión por **URL only**, pega `jdbc:h2:tcp://localhost:9092/mem:arkadb`, y haz clic en **Test Connection** (asegúrate de que el backend esté corriendo previamente).
+
 Tablas clave para inspeccionar:
-* `products`, `product_attributes`, `inventory_items`
+* `products`, `inventory_items`
 * `purchase_orders`, `order_items`
 * `carts`, `cart_items`
 * `notifications`
@@ -109,13 +120,13 @@ Tablas clave para inspeccionar:
 * `processed_events` (Control de idempotencia en consumidores)
 * `projection_product_sales`, `projection_customer_sales`, `projection_replenishment`
 
-### 3. Documentación Interactiva Swagger / OpenAPI 3.0
+### 4. Documentación Interactiva Swagger / OpenAPI 3.0
 * **Swagger UI**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 * **OpenAPI Spec (JSON)**: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
 
 Permite inspeccionar y ejecutar interactivamente todos los endpoints clasificados por Bounded Contexts (`Inventory & Catalog`, `Ordering`, `Cart & Abandonment`, `Notification`, `Analytics & Reporting`), con esquemas de DTOs y respuestas de error estandarizadas RFC 9457 `ProblemDetail`.
 
-### 4. Ejecución de Pruebas de API con `requests.http`
+### 5. Ejecución de Pruebas de API con `requests.http`
 Abre el archivo [`requests.http`](requests.http) en IntelliJ IDEA, VS Code (con extensión REST Client) o tu cliente HTTP preferido y ejecuta las peticiones ordenadas por secciones:
 1. **Happy Path Catálogo e Inventario**: Registro, consulta por categorías y ajuste con auditoría.
 2. **Carrito y Carrito Abandonado**: Adición de ítems y detección automática de abandono.

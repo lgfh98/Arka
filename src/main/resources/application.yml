@@ -25,6 +25,9 @@ spring:
       path: /h2-console
       settings:
         web-allow-others: true
+    tcp:
+      enabled: true
+      port: 9092
 
 server:
   port: 8080
