@@ -1,0 +1,46 @@
+flowchart LR
+    classDef event fill:#D84315,stroke:#BF360C,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef command fill:#1565C0,stroke:#0D47A1,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef actor fill:#455A64,stroke:#263238,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef invariant fill:#C62828,stroke:#8E0000,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef aggregate fill:#B78103,stroke:#7F5600,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+
+    subgraph BC_Ordering ["Bounded Context: Ordering"]
+        direction TB
+
+        subgraph F_Order_Creation ["Flujo: Creación de Orden B2B"]
+            A_Client["👤 Cliente Mayorista"]:::actor --> C_Create["🟦 RegistrarOrden"]:::command
+            C_Create --> INV_MinItems["🟥 INV-06: Minimo 1 Item > 0"]:::invariant
+            INV_MinItems --> AG_Create["🟨 PurchaseOrder (Creación)"]:::aggregate
+            AG_Create --> EV_Created["🟧 OrdenRegistrada"]:::event
+        end
+
+        subgraph F_Order_Modification ["Flujo: Modificación de Pedido"]
+            A_ClientMod["👤 Cliente Mayorista"]:::actor --> C_Modify["🟦 ModificarOrden"]:::command
+            C_Modify --> INV_PendingOnly["🟥 INV-04: Solo Estado PENDIENTE"]:::invariant
+            INV_PendingOnly --> AG_Modify["🟨 PurchaseOrder (Modificación)"]:::aggregate
+            AG_Modify --> EV_Modified["🟧 OrdenModificada"]:::event
+        end
+
+        subgraph F_Order_StateTransitions ["Flujo: Transición de Ciclo de Vida"]
+            A_User["👤 Cliente / Sistema"]:::actor --> C_Confirm["🟦 ConfirmarOrden"]:::command
+            C_Confirm --> INV_TransConfirm["🟥 INV-05: PENDIENTE -> CONFIRMADO"]:::invariant
+            INV_TransConfirm --> AG_Confirm["🟨 PurchaseOrder (Confirmación)"]:::aggregate
+            AG_Confirm --> EV_Confirmed["🟧 OrdenConfirmada"]:::event
+
+            A_Logistics["👤 Operador Logístico"]:::actor --> C_Dispatch["🟦 DespacharOrden"]:::command
+            C_Dispatch --> INV_TransDispatch["🟥 INV-05: CONFIRMADO -> EN_DESPACHO"]:::invariant
+            INV_TransDispatch --> AG_Dispatch["🟨 PurchaseOrder (Despacho)"]:::aggregate
+            AG_Dispatch --> EV_Dispatched["🟧 OrdenEnDespacho"]:::event
+
+            A_LogisticsDeliv["👤 Operador Logístico"]:::actor --> C_Deliver["🟦 MarcarOrdenEntregada"]:::command
+            C_Deliver --> INV_TransDeliver["🟥 INV-05: EN_DESPACHO -> ENTREGADO"]:::invariant
+            INV_TransDeliver --> AG_Deliver["🟨 PurchaseOrder (Entrega)"]:::aggregate
+            AG_Deliver --> EV_Delivered["🟧 OrdenEntregada"]:::event
+
+            A_ClientCancel["👤 Cliente / Timeout"]:::actor --> C_Cancel["🟦 CancelarOrden"]:::command
+            C_Cancel --> INV_TransCancel["🟥 INV-05: PENDIENTE -> CANCELADO"]:::invariant
+            INV_TransCancel --> AG_Cancel["🟨 PurchaseOrder (Cancelación)"]:::aggregate
+            AG_Cancel --> EV_Cancelled["🟧 OrdenCancelada"]:::event
+        end
+    end

@@ -1,0 +1,159 @@
+<div class="app-layout">
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-section">
+        <a routerLink="/inventory" class="brand-logo">
+          <span class="brand-icon">🛒</span>
+          <div class="brand-text">
+            <span class="brand-title">ARKA</span>
+            <span class="brand-subtitle">B2B Distribución Mayorista</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- CUSTOMER SWITCHER & TOOLS -->
+      <div class="header-controls">
+        <div class="customer-picker">
+          <span class="picker-label">🏢 Cliente Activo:</span>
+          <select
+            class="picker-select"
+            [ngModel]="sessionService.activeCustomer().id"
+            (ngModelChange)="onCustomerChange($event)"
+          >
+            @for (cust of sessionService.presetCustomers(); track cust.id) {
+              <option [value]="cust.id">
+                {{ cust.name }} ({{ cust.city }})
+              </option>
+            }
+            <option value="CUSTOM">+ Ingresar otro UUID...</option>
+          </select>
+        </div>
+
+        <!-- QUICK CART BUTTON -->
+        <a routerLink="/cart" class="header-cart-btn" title="Ver Carrito B2B">
+          <span class="cart-icon">🛒</span>
+          @if (cartService.cartItemCount() > 0) {
+            <span class="cart-badge">{{ cartService.cartItemCount() }}</span>
+          }
+        </a>
+
+        <!-- THEME TOGGLE -->
+        <button
+          type="button"
+          class="theme-toggle-btn"
+          (click)="themeService.toggleTheme()"
+          [title]="themeService.theme() === 'dark' ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'"
+        >
+          {{ themeService.theme() === 'dark' ? '☀️ Claro' : '🌙 Oscuro' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN MENU TABS -->
+    <nav class="app-nav">
+      <div class="nav-container">
+        <a routerLink="/inventory" routerLinkActive="nav-active" class="nav-link">
+          🏭 Catálogo & Inventario
+        </a>
+        <a routerLink="/orders" routerLinkActive="nav-active" class="nav-link">
+          📦 Órdenes de Compra
+        </a>
+        <a routerLink="/cart" routerLinkActive="nav-active" class="nav-link">
+          🛒 Carrito B2B
+          @if (cartService.cartItemCount() > 0) {
+            <span class="nav-badge">{{ cartService.cartItemCount() }}</span>
+          }
+        </a>
+        <a routerLink="/analytics" routerLinkActive="nav-active" class="nav-link">
+          📊 Analítica & Reportes
+        </a>
+        <a routerLink="/notifications" routerLinkActive="nav-active" class="nav-link">
+          🔔 Notificaciones
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- MAIN BODY -->
+  <main class="main-content">
+    <div class="content-container">
+      <router-outlet />
+    </div>
+  </main>
+
+  <!-- APP FOOTER -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-col">
+        <strong>Arka Wholesale B2B Engine</strong>
+        <p>Monolito Modular con Minimal DDD, Transactional Outbox y Proyecciones CQRS.</p>
+      </div>
+      <div class="footer-col text-right">
+        <span>Backend: Spring Boot 3.4 (Java 25) | Frontend: Angular con Signals</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- FLOATING TOAST NOTIFICATIONS (RFC 9457 FEEDBACK) -->
+  <div class="toasts-container">
+    @for (toast of toastService.toasts(); track toast.id) {
+      <div class="toast-card toast-{{ toast.type }}">
+        <div class="toast-header">
+          <div class="toast-title-box">
+            <span class="toast-icon">
+              @switch (toast.type) {
+                @case ('success') { ✅ }
+                @case ('error') { ⚠️ }
+                @case ('warning') { ⚡ }
+                @default { ℹ️ }
+              }
+            </span>
+            <strong>{{ toast.title }}</strong>
+          </div>
+          <button class="toast-close" (click)="toastService.remove(toast.id)">&times;</button>
+        </div>
+
+        @if (toast.detail) {
+          <p class="toast-detail">{{ toast.detail }}</p>
+        }
+
+        @if (toast.errors) {
+          <ul class="toast-errors-list">
+            @for (err of getValidationErrors(toast.errors); track err.field) {
+              <li><strong>{{ err.field }}:</strong> {{ err.msg }}</li>
+            }
+          </ul>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- MODAL: CUSTOM CUSTOMER UUID INPUT -->
+  @if (showCustomCustomerModal()) {
+    <div class="modal-backdrop" (click)="closeCustomCustomerModal()">
+      <div class="modal-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>🏢 Seleccionar Cliente Mayorista Personalizado</h3>
+          <button class="modal-close" (click)="closeCustomCustomerModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">UUID del Cliente</label>
+            <input
+              type="text"
+              class="form-input"
+              [ngModel]="customCustomerIdInput()"
+              (ngModelChange)="customCustomerIdInput.set($event)"
+              placeholder="Ej: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+            />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeCustomCustomerModal()">Cancelar</button>
+          <button class="btn btn-primary" (click)="applyCustomCustomer()">Establecer Cliente</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

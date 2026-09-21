@@ -1,0 +1,19 @@
+flowchart TD
+    classDef context fill:#FFFFFF,stroke:#334155,stroke-width:2px,color:#0F172A,font-weight:bold;
+    classDef note fill:#FEF3C7,stroke:#D97706,stroke-width:1px,color:#78350F,font-size:12px;
+
+    %% Bounded Contexts con Roles Estratégicos DDD
+    BC_Inventory["Inventory & Catalog\n[Upstream / OHS / PL]"]:::context
+    BC_Ordering["Ordering\n[Upstream / OHS / PL] & [Downstream / Customer]"]:::context
+    BC_Cart["Cart & Abandonment\n[Upstream / OHS / PL]"]:::context
+    BC_Notification["Notification\n[Downstream / Customer / ACL]"]:::context
+    BC_Analytics["Analytics & Reporting\n[Downstream / Conformist]"]:::context
+
+    %% Relaciones Estratégicas y Contratos de Integración
+    BC_Ordering -->|"Customer / Supplier\n(Stock Reservation Protocol)"| BC_Inventory
+    BC_Ordering -->|"Published Language\n(Order Lifecycle Domain Events v1)"| BC_Notification
+    BC_Cart -->|"Published Language\n(Cart Abandonment Domain Events v1)"| BC_Notification
+    BC_Ordering -->|"Published Language\n(Order Sales Domain Events v1)"| BC_Analytics
+    BC_Inventory -->|"Published Language\n(Stock Replenishment Domain Events v1)"| BC_Analytics
+
+    note1[/"Glosario DDD Estratégico:\nOHS = Open Host Service\nPL = Published Language\nACL = Anti-Corruption Layer\nU = Upstream (Proveedor del servicio / evento)\nD = Downstream (Consumidor dependiente)"/]:::note

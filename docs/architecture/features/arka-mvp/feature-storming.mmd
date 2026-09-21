@@ -1,0 +1,161 @@
+flowchart LR
+    classDef event fill:#D84315,stroke:#BF360C,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef command fill:#1565C0,stroke:#0D47A1,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef actor fill:#455A64,stroke:#263238,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef invariant fill:#C62828,stroke:#8E0000,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef aggregate fill:#B78103,stroke:#7F5600,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef policy fill:#6A1B9A,stroke:#4A148C,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef readModel fill:#2E7D32,stroke:#1B5E20,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+
+    subgraph BC_Inventory ["Bounded Context: Inventory & Catalog"]
+        direction TB
+
+        subgraph F_Inv_RegisterProduct ["Flujo: Registro de Producto de Catálogo"]
+            A_Admin_Prod["👤 Administrador"]:::actor --> C_RegProd["🟦 RegistrarProducto"]:::command
+            C_RegProd --> INV_Prod_Valid["🟥 INV-01: Nombre, Categ, Precio > 0"]:::invariant
+            INV_Prod_Valid --> AG_Prod_Reg["🟨 Product (Alta)"]:::aggregate
+            AG_Prod_Reg --> EV_ProdReg["🟧 ProductoRegistrado"]:::event
+        end
+
+        subgraph F_Inv_AdjustStock ["Flujo: Ajuste e Historial de Stock"]
+            A_Admin_Stock["👤 Administrador"]:::actor --> C_AdjStock["🟦 AjustarStock"]:::command
+            C_AdjStock --> INV_Stock_NoNeg["🟥 INV-02: Stock Fisico >= 0"]:::invariant
+            INV_Stock_NoNeg --> AG_Stock_Adj["🟨 InventoryItem (Ajuste)"]:::aggregate
+            AG_Stock_Adj --> EV_StockAdj["🟧 StockAjustado"]:::event
+        end
+
+        subgraph F_Inv_ReserveStock ["Flujo: Reserva Preventiva Anti-Sobreventa"]
+            EV_Ext_OrderReg["🟧 OrdenRegistrada\n(Ext: Ordering)"]:::event --> POL_Inv_Reserve["🟪 POL-01: Reservar Stock Preventivo"]:::policy
+            POL_Inv_Reserve --> C_ResStock["🟦 ReservarStock"]:::command
+            C_ResStock --> INV_Stock_Avail["🟥 INV-03: StockDisp >= Solicitado"]:::invariant
+            INV_Stock_Avail --> AG_Stock_Res["🟨 InventoryItem (Reserva)"]:::aggregate
+            AG_Stock_Res --> EV_StockRes["🟧 StockReservado"]:::event
+        end
+
+        subgraph F_Inv_AdjustReservation ["Flujo: Reajuste de Reserva por Modificación"]
+            EV_Ext_OrderMod["🟧 OrdenModificada\n(Ext: Ordering)"]:::event --> POL_Inv_AdjRes["🟪 POL-02: Reajustar Reserva"]:::policy
+            POL_Inv_AdjRes --> C_AdjResStock["🟦 AjustarReservaStock"]:::command
+            C_AdjResStock --> INV_Stock_ModAvail["🟥 INV-03: StockDisp >= Delta"]:::invariant
+            INV_Stock_ModAvail --> AG_Stock_AdjRes["🟨 InventoryItem (Reajuste)"]:::aggregate
+            AG_Stock_AdjRes --> EV_StockAdjRes["🟧 ReservaStockAjustada"]:::event
+        end
+
+        subgraph F_Inv_DeductOrRelease ["Flujo: Descuento Definitivo o Liberación"]
+            EV_Ext_OrderConf["🟧 OrdenConfirmada\n(Ext: Ordering)"]:::event --> POL_Inv_Deduct["🟪 POL-03A: Descontar Definitivo"]:::policy
+            POL_Inv_Deduct --> C_DeductStock["🟦 DescontarStockDefinitivo"]:::command
+            C_DeductStock --> AG_Stock_Deduct["🟨 InventoryItem (Descuento)"]:::aggregate
+            AG_Stock_Deduct --> EV_StockDeducted["🟧 StockDescontadoDefinitivamente"]:::event
+
+            EV_Ext_OrderCanc["🟧 OrdenCancelada\n(Ext: Ordering)"]:::event --> POL_Inv_Release["🟪 POL-03B: Liberar Reserva"]:::policy
+            POL_Inv_Release --> C_RelStock["🟦 LiberarReservaStock"]:::command
+            C_RelStock --> AG_Stock_Rel["🟨 InventoryItem (Liberación)"]:::aggregate
+            AG_Stock_Rel --> EV_StockReleased["🟧 ReservaStockLiberada"]:::event
+        end
+
+        subgraph F_Inv_LowStockAlert ["Flujo: Detección de Umbral Crítico"]
+            A_Timer_Stock["⏱️ Scheduler Stock"]:::actor --> C_EvalStock["🟦 EvaluarNivelStock"]:::command
+            C_EvalStock --> INV_Stock_Low["🟥 INV-08: StockDisp <= Umbral"]:::invariant
+            INV_Stock_Low --> AG_Stock_Eval["🟨 InventoryItem (Alerta)"]:::aggregate
+            AG_Stock_Eval --> EV_StockLow["🟧 StockBajoDetectado"]:::event
+        end
+    end
+
+    subgraph BC_Ordering ["Bounded Context: Ordering"]
+        direction TB
+
+        subgraph F_Order_PlaceOrder ["Flujo: Radicación de Orden B2B"]
+            A_Client_Order["👤 Cliente Mayorista"]:::actor --> C_CreateOrder["🟦 RegistrarOrden"]:::command
+            C_CreateOrder --> INV_Order_MinItem["🟥 INV-06: Minimo 1 Item > 0"]:::invariant
+            INV_Order_MinItem --> AG_Order_Create["🟨 PurchaseOrder (Creación)"]:::aggregate
+            AG_Order_Create --> EV_OrderCreated["🟧 OrdenRegistrada"]:::event
+        end
+
+        subgraph F_Order_ModifyPending ["Flujo: Modificación de Orden Pendiente"]
+            A_Client_Mod["👤 Cliente Mayorista"]:::actor --> C_ModifyOrder["🟦 ModificarOrden"]:::command
+            C_ModifyOrder --> INV_Order_Pending["🟥 INV-04: Solo Estado PENDIENTE"]:::invariant
+            INV_Order_Pending --> AG_Order_Modify["🟨 PurchaseOrder (Modificación)"]:::aggregate
+            AG_Order_Modify --> EV_OrderModified["🟧 OrdenModificada"]:::event
+        end
+
+        subgraph F_Order_Lifecycle ["Flujo: Transición de Ciclo de Vida"]
+            A_Client_Conf["👤 Cliente / Sistema"]:::actor --> C_ConfirmOrder["🟦 ConfirmarOrden"]:::command
+            C_ConfirmOrder --> INV_Order_TransConf["🟥 INV-05: PENDIENTE -> CONFIRMADO"]:::invariant
+            INV_Order_TransConf --> AG_Order_Conf["🟨 PurchaseOrder (Confirmación)"]:::aggregate
+            AG_Order_Conf --> EV_OrderConfirmed["🟧 OrdenConfirmada"]:::event
+
+            A_Logistics_Ship["👤 Operador Logístico"]:::actor --> C_DispatchOrder["🟦 DespacharOrden"]:::command
+            C_DispatchOrder --> INV_Order_TransShip["🟥 INV-05: CONFIRMADO -> EN_DESPACHO"]:::invariant
+            INV_Order_TransShip --> AG_Order_Ship["🟨 PurchaseOrder (Despacho)"]:::aggregate
+            AG_Order_Ship --> EV_OrderDispatched["🟧 OrdenEnDespacho"]:::event
+
+            A_Logistics_Deliv["👤 Operador Logístico"]:::actor --> C_DeliverOrder["🟦 MarcarOrdenEntregada"]:::command
+            C_DeliverOrder --> INV_Order_TransDeliv["🟥 INV-05: EN_DESPACHO -> ENTREGADO"]:::invariant
+            INV_Order_TransDeliv --> AG_Order_Deliv["🟨 PurchaseOrder (Entrega)"]:::aggregate
+            AG_Order_Deliv --> EV_OrderDelivered["🟧 OrdenEntregada"]:::event
+
+            A_Client_Canc["👤 Cliente / Timeout"]:::actor --> C_CancelOrder["🟦 CancelarOrden"]:::command
+            C_CancelOrder --> INV_Order_TransCanc["🟥 INV-05: PENDIENTE -> CANCELADO"]:::invariant
+            INV_Order_TransCanc --> AG_Order_Canc["🟨 PurchaseOrder (Cancelación)"]:::aggregate
+            AG_Order_Canc --> EV_OrderCancelled["🟧 OrdenCancelada"]:::event
+        end
+    end
+
+    subgraph BC_Cart ["Bounded Context: Cart & Abandonment"]
+        direction TB
+
+        subgraph F_Cart_Manage ["Flujo: Gestión de Carrito"]
+            A_Client_Cart["👤 Cliente Mayorista"]:::actor --> C_AddCartItem["🟦 AgregarItemCarrito"]:::command
+            C_AddCartItem --> AG_Cart_Active["🟨 Cart (Actividad)"]:::aggregate
+            AG_Cart_Active --> EV_CartItemAdded["🟧 ItemAgregadoAlCarrito"]:::event
+        end
+
+        subgraph F_Cart_Abandon ["Flujo: Detección de Carrito Abandonado"]
+            A_Timer_Cart["⏱️ Scheduler Inactividad"]:::actor --> C_CheckAband["🟦 DetectarInactividadCarrito"]:::command
+            C_CheckAband --> INV_Cart_Inact["🟥 INV-07: Inactividad > 2 Horas"]:::invariant
+            INV_Cart_Inact --> AG_Cart_Aband["🟨 Cart (Abandono)"]:::aggregate
+            AG_Cart_Aband --> EV_CartAbandoned["🟧 CarritoAbandonadoDetectado"]:::event
+        end
+    end
+
+    subgraph BC_Notification ["Bounded Context: Notification"]
+        direction TB
+
+        subgraph F_Notif_OrderUpdates ["Flujo: Notificación de Cambio de Estado"]
+            EV_Ext_OrderStatus["🟧 OrdenActualizada\n(Ext: Ordering)"]:::event --> POL_Notif_Order["🟪 POL-04: Notificar Estado Orden"]:::policy
+            POL_Notif_Order --> C_SendOrderNotif["🟦 NotificarCambioEstado"]:::command
+            C_SendOrderNotif --> AG_Notif_Order["🟨 NotificationRecord (Orden)"]:::aggregate
+            AG_Notif_Order --> EV_NotifOrderSent["🟧 NotificacionCambioEstadoEnviada"]:::event
+        end
+
+        subgraph F_Notif_CartReminder ["Flujo: Recordatorio de Carrito Abandonado"]
+            EV_Ext_CartAband["🟧 CarritoAbandonadoDetectado\n(Ext: Cart)"]:::event --> POL_Notif_Cart["🟪 POL-05: Recordatorio Recuperación"]:::policy
+            POL_Notif_Cart --> C_SendCartReminder["🟦 EnviarRecordatorioCarrito"]:::command
+            C_SendCartReminder --> AG_Notif_Cart["🟨 NotificationRecord (Carrito)"]:::aggregate
+            AG_Notif_Cart --> EV_CartReminderSent["🟧 RecordatorioCarritoEnviado"]:::event
+        end
+    end
+
+    subgraph BC_Analytics ["Bounded Context: Analytics & Reporting"]
+        direction TB
+
+        subgraph F_Analytics_CQRS ["Flujo: Proyecciones Analíticas"]
+            RM_WeeklySales["🟩 ReadModel: Ventas Semanales\n(Total, Top Productos, Clientes)"]:::readModel
+            RM_Replenishment["🟩 ReadModel: Reporte Abastecimiento\n(Stock Crítico <= Umbral)"]:::readModel
+        end
+    end
+
+    %% Reacciones Asíncronas Inter-Contexto vía Transactional Outbox
+    EV_OrderCreated -. Outbox .-> POL_Inv_Reserve
+    EV_OrderModified -. Outbox .-> POL_Inv_AdjRes
+    EV_OrderConfirmed -. Outbox .-> POL_Inv_Deduct
+    EV_OrderCancelled -. Outbox .-> POL_Inv_Release
+
+    EV_OrderCreated -. Outbox .-> POL_Notif_Order
+    EV_OrderConfirmed -. Outbox .-> POL_Notif_Order
+    EV_OrderDispatched -. Outbox .-> POL_Notif_Order
+    EV_OrderDelivered -. Outbox .-> POL_Notif_Order
+    EV_CartAbandoned -. Outbox .-> POL_Notif_Cart
+
+    %% Proyecciones CQRS desde Eventos Consumados
+    EV_OrderConfirmed -. Proyecta .-> RM_WeeklySales
+    EV_StockLow -. Proyecta .-> RM_Replenishment

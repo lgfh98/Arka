@@ -1,0 +1,19 @@
+flowchart LR
+    classDef event fill:#D84315,stroke:#BF360C,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef readModel fill:#2E7D32,stroke:#1B5E20,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+
+    subgraph BC_Analytics ["Bounded Context: Analytics & Reporting"]
+        direction TB
+
+        subgraph F_Analytics_Sales ["Flujo: Proyección de Ventas Semanales"]
+            EV_Ext_OrderConfirmed["🟧 OrdenConfirmada\n(Ext: Ordering)"]:::event
+            RM_Sales["🟩 ReadModel: Ventas Semanales\n(Total Ventas, Top Productos, Clientes)"]:::readModel
+            EV_Ext_OrderConfirmed -. "Proyecta" .-> RM_Sales
+        end
+
+        subgraph F_Analytics_Replenishment ["Flujo: Proyección de Productos a Reabastecer"]
+            EV_Ext_StockLow["🟧 StockBajoDetectado\n(Ext: Inventory)"]:::event
+            RM_Replenish["🟩 ReadModel: Reporte Abastecimiento\n(Productos <= Umbral Crítico)"]:::readModel
+            EV_Ext_StockLow -. "Proyecta" .-> RM_Replenish
+        end
+    end

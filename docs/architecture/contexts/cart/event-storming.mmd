@@ -1,0 +1,23 @@
+flowchart LR
+    classDef event fill:#D84315,stroke:#BF360C,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef command fill:#1565C0,stroke:#0D47A1,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef actor fill:#455A64,stroke:#263238,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef invariant fill:#C62828,stroke:#8E0000,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef aggregate fill:#B78103,stroke:#7F5600,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+
+    subgraph BC_Cart ["Bounded Context: Cart & Abandonment"]
+        direction TB
+
+        subgraph F_Cart_Operations ["Flujo: Manipulación de Carrito"]
+            A_Customer["👤 Cliente Mayorista"]:::actor --> C_AddItem["🟦 AgregarItemCarrito"]:::command
+            C_AddItem --> AG_Cart_Op["🟨 Cart (Operación)"]:::aggregate
+            AG_Cart_Op --> EV_ItemAdded["🟧 ItemAgregadoAlCarrito"]:::event
+        end
+
+        subgraph F_Cart_Abandonment ["Flujo: Detección de Abandono"]
+            A_Timer["⏱️ Scheduler Inactividad"]:::actor --> C_EvalInact["🟦 DetectarInactividadCarrito"]:::command
+            C_EvalInact --> INV_Time["🟥 INV-07: Inactividad > 2 Horas"]:::invariant
+            INV_Time --> AG_Cart_Aband["🟨 Cart (Abandono)"]:::aggregate
+            AG_Cart_Aband --> EV_Abandoned["🟧 CarritoAbandonadoDetectado"]:::event
+        end
+    end

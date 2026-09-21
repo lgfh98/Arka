@@ -1,0 +1,76 @@
+Backlog del Proyecto Java Backend - Arka
+1. Introducción
+Este backlog contiene las historias de usuario que se desarrollarán a lo largo del curso para
+la implementación del backend del sistema de Arka. Su objetivo es garantizar que la
+empresa pueda gestionar eficientemente su inventario, órdenes de compra y ventas,
+optimizando así sus operaciones.
+
+2. Historias de Usuario
+Módulo 1: Gestión de Inventario y Abastecimiento
+HU1 - Registrar productos en el sistema​
+Como administrador, quiero registrar nuevos productos con sus características para que los
+clientes puedan comprarlos.
+●​ Criterios de aceptación:
+○​ Se debe permitir la carga de nombre, descripción, precio, stock y categoría.
+○​ Validaciones de datos requeridos.
+○​ Mensaje de confirmación tras el registro exitoso.
+HU2 - Actualizar stock de productos​
+Como administrador, quiero actualizar la cantidad de productos en stock para evitar
+sobreventas.
+●​ Criterios de aceptación:
+○​ El sistema debe permitir modificar el stock de un producto.
+○​ No se deben permitir valores negativos.
+○​ Historial de cambios en el stock.
+HU3 - Generar reportes de productos por abastecer​
+Como administrador, quiero recibir reportes de productos con bajo stock para tomar
+decisiones de abastecimiento.
+●​ Criterios de aceptación:
+○​ El reporte debe generarse automáticamente cada semana.
+○​ Debe incluir productos con stock menor a un umbral configurable.
+○​ Exportación en formato CSV o PDF.
+
+Módulo 2: Gestión de Órdenes de Compra
+HU4 - Registrar una orden de compra​
+Como cliente, quiero poder registrar una orden de compra con múltiples productos para
+realizar mi pedido.
+●​ Criterios de aceptación:
+○​ Se debe validar la disponibilidad del stock.
+○​ Registro de fecha y detalles del pedido.
+○​ Mensaje de confirmación con resumen del pedido.
+HU5 - Modificar una orden de compra​
+Como cliente, quiero modificar mi pedido antes de su confirmación para corregir errores o
+agregar productos.
+●​ Criterios de aceptación:
+○​ Solo se pueden modificar pedidos en estado 'pendiente'.
+○​ Se debe actualizar el stock en caso de eliminación de productos.
+HU6 - Notificación de cambio de estado de pedido​
+Como cliente, quiero recibir notificaciones sobre el estado de mi pedido para estar
+informado de su progreso.
+●​ Criterios de aceptación:
+○​ Notificación por correo o en la plataforma.
+○​ Estados: pendiente, confirmado, en despacho, entregado.
+
+Módulo 3: Reportes y Análisis de Ventas
+HU7 - Generar reportes de ventas semanales​
+Como administrador, quiero generar reportes semanales de ventas para analizar el
+rendimiento del negocio.
+●​ Criterios de aceptación:
+○​ El reporte debe incluir total de ventas, productos más vendidos y clientes más
+frecuentes.
+○​ Exportación en formato CSV o PDF.
+HU8 - Identificar carritos abandonados​
+Como administrador, quiero visualizar los carritos abandonados para contactar a los
+clientes y recuperar ventas.
+●​ Criterios de aceptación:
+○​ Listado de carritos abandonados con fecha y productos.
+○​ Opción de enviar recordatorio por correo al cliente.
+
+3. Priorización
+Se recomienda priorizar las historias de usuario de la siguiente manera:
+
+4. Conclusión
+Este backlog proporciona una estructura clara para el desarrollo del backend del sistema de
+Arka. Con estas historias de usuario y su priorización, se garantizará la entrega de un
+producto funcional que atienda las necesidades principales del negocio.
+
+

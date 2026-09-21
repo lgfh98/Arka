@@ -1,0 +1,63 @@
+flowchart LR
+    classDef event fill:#D84315,stroke:#BF360C,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef command fill:#1565C0,stroke:#0D47A1,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef actor fill:#455A64,stroke:#263238,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef invariant fill:#C62828,stroke:#8E0000,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef aggregate fill:#B78103,stroke:#7F5600,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef policy fill:#6A1B9A,stroke:#4A148C,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef readModel fill:#2E7D32,stroke:#1B5E20,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+
+    subgraph BC_Inventory ["Bounded Context: Inventory & Catalog"]
+        direction TB
+
+        subgraph F_Inv_ProductReg ["Flujo: Registro de Producto"]
+            A_Admin["👤 Administrador"]:::actor --> C_RegProd["🟦 RegistrarProducto"]:::command
+            C_RegProd --> INV_ProdData["🟥 INV-01: Nombre, Categoria, Precio > 0"]:::invariant
+            INV_ProdData --> AG_Product["🟨 Product (Catálogo)"]:::aggregate
+            AG_Product --> EV_ProdReg["🟧 ProductoRegistrado"]:::event
+        end
+
+        subgraph F_Inv_StockAdjust ["Flujo: Ajuste Manual de Stock"]
+            A_StockAdmin["👤 Administrador"]:::actor --> C_AdjStock["🟦 AjustarStock"]:::command
+            C_AdjStock --> INV_NoNeg["🟥 INV-02: Stock Fisico >= 0"]:::invariant
+            INV_NoNeg --> AG_StockAdj["🟨 InventoryItem (Ajuste)"]:::aggregate
+            AG_StockAdj --> EV_StockAdj["🟧 StockAjustado"]:::event
+        end
+
+        subgraph F_Inv_OrderReservation ["Flujo: Reserva Preventiva Anti-Sobreventa"]
+            EV_Ext_OrderReg["🟧 OrdenRegistrada\n(Ext: Ordering)"]:::event --> POL_Reserva["🟪 POL-01: Reservar Unidades"]:::policy
+            POL_Reserva --> C_ResStock["🟦 ReservarStock"]:::command
+            C_ResStock --> INV_StockDisp["🟥 INV-03: StockDisp >= Cantidad"]:::invariant
+            INV_StockDisp --> AG_StockRes["🟨 InventoryItem (Reserva)"]:::aggregate
+            AG_StockRes --> EV_StockRes["🟧 StockReservado"]:::event
+        end
+
+        subgraph F_Inv_OrderAdjustment ["Flujo: Reajuste de Reserva por Modificación"]
+            EV_Ext_OrderMod["🟧 OrdenModificada\n(Ext: Ordering)"]:::event --> POL_AdjRes["🟪 POL-02: Reajustar Reserva"]:::policy
+            POL_AdjRes --> C_AdjRes["🟦 AjustarReservaStock"]:::command
+            C_AdjRes --> INV_AdjDisp["🟥 INV-03: StockDisp >= Delta"]:::invariant
+            INV_AdjDisp --> AG_StockAdjRes["🟨 InventoryItem (Reajuste)"]:::aggregate
+            AG_StockAdjRes --> EV_StockAdjRes["🟧 ReservaStockAjustada"]:::event
+        end
+
+        subgraph F_Inv_PermanentDeduct ["Flujo: Descuento Definitivo"]
+            EV_Ext_OrderConf["🟧 OrdenConfirmada\n(Ext: Ordering)"]:::event --> POL_Deduct["🟪 POL-03A: Descontar Físico"]:::policy
+            POL_Deduct --> C_Deduct["🟦 DescontarStockDefinitivo"]:::command
+            C_Deduct --> AG_StockDeduct["🟨 InventoryItem (Descuento)"]:::aggregate
+            AG_StockDeduct --> EV_StockDeducted["🟧 StockDescontadoDefinitivamente"]:::event
+        end
+
+        subgraph F_Inv_ReleaseReservation ["Flujo: Liberación de Reserva por Cancelación"]
+            EV_Ext_OrderCanc["🟧 OrdenCancelada\n(Ext: Ordering)"]:::event --> POL_Release["🟪 POL-03B: Liberar Reserva"]:::policy
+            POL_Release --> C_Release["🟦 LiberarReservaStock"]:::command
+            C_Release --> AG_StockRelease["🟨 InventoryItem (Liberación)"]:::aggregate
+            AG_StockRelease --> EV_StockReleased["🟧 ReservaStockLiberada"]:::event
+        end
+
+        subgraph F_Inv_ThresholdAlert ["Flujo: Alerta de Umbral Crítico"]
+            A_Scheduler["⏱️ Scheduler Stock"]:::actor --> C_CheckThreshold["🟦 EvaluarNivelStock"]:::command
+            C_CheckThreshold --> INV_Threshold["🟥 INV-08: StockDisp <= Umbral"]:::invariant
+            INV_Threshold --> AG_StockAlert["🟨 InventoryItem (Alerta)"]:::aggregate
+            AG_StockAlert --> EV_StockLow["🟧 StockBajoDetectado"]:::event
+        end
+    end

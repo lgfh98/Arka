@@ -1,0 +1,23 @@
+flowchart LR
+    classDef event fill:#D84315,stroke:#BF360C,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef command fill:#1565C0,stroke:#0D47A1,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef aggregate fill:#B78103,stroke:#7F5600,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+    classDef policy fill:#6A1B9A,stroke:#4A148C,stroke-width:2px,color:#FFFFFF,font-weight:bold;
+
+    subgraph BC_Notification ["Bounded Context: Notification"]
+        direction TB
+
+        subgraph F_Notif_OrderLifecycle ["Flujo: Notificación de Cambio de Estado de Orden"]
+            EV_Ext_OrderStatus["🟧 OrdenActualizada\n(Ext: Ordering)"]:::event --> POL_NotifOrder["🟪 POL-04: Reaccionar a Estado"]:::policy
+            POL_NotifOrder --> C_SendOrderEmail["🟦 NotificarCambioEstado"]:::command
+            C_SendOrderEmail --> AG_NotifOrder["🟨 NotificationRecord (Orden)"]:::aggregate
+            AG_NotifOrder --> EV_OrderNotifSent["🟧 NotificacionCambioEstadoEnviada"]:::event
+        end
+
+        subgraph F_Notif_AbandonedCart ["Flujo: Recordatorio de Carrito Abandonado"]
+            EV_Ext_CartAband["🟧 CarritoAbandonadoDetectado\n(Ext: Cart)"]:::event --> POL_NotifCart["🟪 POL-05: Recordatorio Recuperación"]:::policy
+            POL_NotifCart --> C_SendCartEmail["🟦 EnviarRecordatorioCarrito"]:::command
+            C_SendCartEmail --> AG_NotifCart["🟨 NotificationRecord (Carrito)"]:::aggregate
+            AG_NotifCart --> EV_CartNotifSent["🟧 RecordatorioCarritoEnviado"]:::event
+        end
+    end
