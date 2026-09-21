@@ -18,7 +18,7 @@ En una arquitectura de Bounded Contexts desacoplados dentro de un monolito:
 ### 1. Tabla de Eventos Salientes (`outbox_events`)
 
 ```sql
-CREATE TABLE outbox_events (
+CREATE TABLE shared.outbox_events (
     event_id UUID PRIMARY KEY,
     aggregate_type VARCHAR(100) NOT NULL,
     aggregate_id VARCHAR(100) NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE outbox_events (
     processed_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE INDEX idx_outbox_status_created ON outbox_events(status, created_at);
+CREATE INDEX idx_outbox_status_created ON shared.outbox_events(status, created_at);
 ```
 
 ### 2. Tabla de Deduplicación en Consumidores (`processed_events`)
@@ -38,10 +38,11 @@ CREATE INDEX idx_outbox_status_created ON outbox_events(status, created_at);
 Cada Bounded Context consumidor mantiene un registro de idempotencia para descartar reintentos:
 
 ```sql
-CREATE TABLE processed_events (
-    event_id UUID PRIMARY KEY,
+CREATE TABLE shared.processed_events (
+    event_id UUID NOT NULL,
     consumer_context VARCHAR(100) NOT NULL,
-    processed_at TIMESTAMP WITH TIME ZONE NOT NULL
+    processed_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    PRIMARY KEY (event_id, consumer_context)
 );
 ```
 

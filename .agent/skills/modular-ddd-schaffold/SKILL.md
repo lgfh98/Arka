@@ -29,19 +29,39 @@ de Monolito Modular con Minimal DDD y Transactional Outbox (Paso 5).
     ├── config/                                # Spring @Configuration cableando Decorators
     ├── decorator/                             # Decoradores @Transactional de los UseCases
     ├── persistence/                           # Spring Data JPA (Entity, Repository, Mapper, Adapter)
-    │   ├── entity/ProcessedEventJpaEntity.java# Control de Idempotencia del consumidor
-    │   └── repository/ProcessedEventJpaRepository.java
+    │   ├── entity/*JpaEntity.java             # @Table(name = "...", schema = "<context>")
+    │   └── repository/*JpaRepository.java
     ├── event/                                 # @EventListener idempotente que reacciona a eventos
     └── web/                                   # Spring MVC (@RestController, DTOs, WebMapper)
 
-shared/infrastructure/outbox/                  # KERNEL DE RESILIENCIA (At-Least-Once Delivery)
-├── OutboxStatus.java                          # PENDING, PROCESSED, FAILED
-├── OutboxEventJpaEntity.java                  # Tabla outbox_events
-├── OutboxEventJpaRepository.java              # Spring Data JPA
-├── OutboxDomainEventPublisher.java            # Persiste el evento en la misma tx de BD
-├── OutboxEventProcessor.java                  # Despacho aislado en tx REQUIRES_NEW
-└── OutboxEventRelay.java                      # Worker @Scheduled + AfterCommit sync
+shared/infrastructure/                         # KERNEL DE RESILIENCIA (Schema "shared")
+├── outbox/
+│   ├── OutboxStatus.java                      # PENDING, PROCESSED, FAILED
+│   ├── OutboxEventJpaEntity.java              # @Table(name = "outbox_events", schema = "shared")
+│   ├── OutboxEventJpaRepository.java          # Spring Data JPA
+│   ├── OutboxDomainEventPublisher.java        # Persiste el evento en la misma tx de BD
+│   ├── OutboxEventProcessor.java              # Despacho aislado en tx REQUIRES_NEW
+│   └── OutboxEventRelay.java                  # Worker @Scheduled + AfterCommit sync
+└── idempotency/
+    ├── ProcessedEventJpaEntity.java           # @Table(name = "processed_events", schema = "shared")
+    └── ProcessedEventJpaRepository.java
 ```
+
+### 🗄️ Regla de Aislamiento de Persistencia por Esquemas de Base de Datos (Database Schemas):
+- **Aislamiento obligatorio**: Cada Bounded Context es dueño exclusivo de su propio esquema de base de datos (`inventory`, `ordering`, `cart`, `notification`, `analytics`, `shared`).
+- **Entidades JPA**: Todas las entidades JPA DEBEN especificar explícitamente el esquema:
+  ```java
+  @Entity
+  @Table(name = "<table_name>", schema = "<context_name>")
+  ```
+- **Inicialización de Esquemas en H2 / Test**:
+  En H2 en memoria (`application.yml`), para evitar errores de tipo `Schema "X" not found` durante el ciclo de vida de Hibernate (`ddl-auto: create-drop` o `update`), la URL JDBC o `schema.sql` DEBEN inicializar los esquemas:
+  ```yaml
+  spring:
+    datasource:
+      url: jdbc:h2:mem:<dbname>;...;INIT=CREATE SCHEMA IF NOT EXISTS <ctx1>\;CREATE SCHEMA IF NOT EXISTS <ctx2>
+  ```
+- **Datos semilla (`data.sql`)**: Las sentencias DML (`MERGE INTO ...`, `INSERT INTO ...`) deben calificar siempre la tabla con su esquema: `<schema>.<table_name>`.
 
 ## Nomenclatura Canónica de Event Storming (Alberto Brandolini):
 
@@ -107,13 +127,15 @@ Cuando el usuario aprueba el Event Storming (ej. *"Aprobado"*, *"Constrúyelo"*,
     - Crea o actualiza `docs/architecture/transactional-outbox-workflow.md`: Guía de referencia sobre la infraestructura de resiliencia y el manual de publicación/consumo de eventos para desarrolladores.
 
 2. **Scaffolding Táctico Incremental (Paso 5)**:
+    - **Aislamiento Físico de Esquemas**: Toda entidad JPA creada en `infrastructure/persistence/entity/` debe incluir `@Table(name = "...", schema = "<context_name>")`. Las tablas de `shared` (`outbox_events`, `processed_events`) van en el esquema `shared`.
     - **Si es 1 contexto**: Construye el dominio puro (`model`, `port`, `service`), adaptadores (`decorator`, `persistence`, `event`, `web`) y el kernel `shared/infrastructure/outbox`.
     - **Si son múltiples contextos**:
         - **Fase A (Productor + Kernel)**: Construye el contexto emisor y el kernel `shared/infrastructure/outbox`.
         - **Fase B (Consumidores)**: Construye sucesivamente cada contexto receptor generando su agregación y su `@EventListener` idempotente (`ProcessedEventJpaEntity`) conectado a los eventos del productor.
 
 3. **Generación de Datos de Prueba en H2 y Solicitudes HTTP (`requests.http`)**:
-    - Inserta o actualiza datos semilla en `src/main/resources/data.sql` (usando `MERGE INTO ... KEY(id)`) con IDs de referencia conocidos para que la base de datos en memoria H2 arranque con datos listos para probar.
+    - Asegura que `application.yml` inicialice los esquemas en la URL H2 (`INIT=CREATE SCHEMA IF NOT EXISTS <ctx1>\;...`).
+    - Inserta o actualiza datos semilla en `src/main/resources/data.sql` (usando `MERGE INTO <schema>.<table_name> ... KEY(id)`) con IDs de referencia conocidos para que la base de datos en memoria H2 arranque con datos listos para probar.
     - Agrega o actualiza en el archivo raíz `requests.http` (o `request.http`) las peticiones HTTP listas para probar con comentarios explicativos:
         - **Happy Path**: POST/GET de creación y consulta exitosa.
         - **Violación de Invariantes**: Peticiones que violan reglas de negocio intencionalmente para comprobar el manejo de excepciones RFC 9457 `ProblemDetail` (400 / 422).

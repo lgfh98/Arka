@@ -14,7 +14,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "projection_replenishment")
+@Table(name = "projection_replenishment", schema = "analytics")
 @Getter
 @Setter
 @NoArgsConstructor

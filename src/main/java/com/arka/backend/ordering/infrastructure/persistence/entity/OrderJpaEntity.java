@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "purchase_orders")
+@Table(name = "purchase_orders", schema = "ordering")
 @Getter
 @Setter
 @NoArgsConstructor

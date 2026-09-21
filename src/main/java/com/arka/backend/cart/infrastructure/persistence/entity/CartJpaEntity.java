@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "carts")
+@Table(name = "carts", schema = "cart")
 @Getter
 @Setter
 @NoArgsConstructor

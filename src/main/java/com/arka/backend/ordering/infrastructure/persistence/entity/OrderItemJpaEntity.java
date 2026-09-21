@@ -19,7 +19,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
-@Table(name = "order_items")
+@Table(name = "order_items", schema = "ordering")
 @Getter
 @Setter
 @NoArgsConstructor

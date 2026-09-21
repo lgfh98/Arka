@@ -15,7 +15,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "notifications")
+@Table(name = "notifications", schema = "notification")
 @Getter
 @Setter
 @NoArgsConstructor

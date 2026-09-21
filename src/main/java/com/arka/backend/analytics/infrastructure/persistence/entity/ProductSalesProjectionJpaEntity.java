@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
-@Table(name = "projection_product_sales")
+@Table(name = "projection_product_sales", schema = "analytics")
 @Getter
 @Setter
 @NoArgsConstructor

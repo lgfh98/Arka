@@ -19,7 +19,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
-@Table(name = "cart_items")
+@Table(name = "cart_items", schema = "cart")
 @Getter
 @Setter
 @NoArgsConstructor

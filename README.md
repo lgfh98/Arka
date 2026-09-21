@@ -37,13 +37,14 @@ flowchart TD
 
 ## 📦 Bounded Contexts y Responsabilidades de Negocio
 
-| Bounded Context | Responsabilidades y Agregados Clave | Historias de Usuario | Invariantes Protegidas |
-| :--- | :--- | :---: | :--- |
-| **`inventory`** | **🟨 Product** & **🟨 InventoryItem**:<br/>Registro de productos, atributos PC, control de stock físico, reserva transaccional anti-sobreventa y alertas de umbral crítico. | **HU1, HU2, HU3** | `INV-01` (Integridad de producto)<br/>`INV-02` (Stock no negativo)<br/>`INV-03` (Reserva anti-sobreventa)<br/>`INV-08` (Alerta de stock bajo) |
-| **`ordering`** | **🟨 PurchaseOrder**:<br/>Radicación de pedidos B2B, modificación de pedidos en estado pendiente, confirmación, despacho y entrega. | **HU4, HU5, HU6** | `INV-04` (Modificable solo PENDIENTE)<br/>`INV-05` (Transición formal de estados)<br/>`INV-06` (Mínimo 1 producto) |
-| **`cart`** | **🟨 Cart**:<br/>Gestión de carrito de compras del cliente y detección automática de carritos abandonados tras inactividad. | **HU8** | `INV-07` (Inactividad > umbral) |
-| **`notification`** | **🟨 NotificationRecord**:<br/>Consumidor idempotente que despacha notificaciones ante hitos de orden y recordatorios de carrito. | **HU6, HU8** | Idempotencia at-least-once |
-| **`analytics`** | **🟩 Proyecciones CQRS**:<br/>Read models actualizados por eventos para reportes de ventas semanales (top productos/clientes) y reposición. Exportación CSV y JSON. | **HU7, HU3** | Pureza CQRS desde Domain Events |
+| Bounded Context | Esquema de BD | Responsabilidades y Agregados Clave | Historias de Usuario | Invariantes Protegidas |
+| :--- | :---: | :--- | :---: | :--- |
+| **`inventory`** | `inventory` | **🟨 Product** & **🟨 InventoryItem**:<br/>Registro de productos, atributos PC, control de stock físico, reserva transaccional anti-sobreventa y alertas de umbral crítico. | **HU1, HU2, HU3** | `INV-01` (Integridad de producto)<br/>`INV-02` (Stock no negativo)<br/>`INV-03` (Reserva anti-sobreventa)<br/>`INV-08` (Alerta de stock bajo) |
+| **`ordering`** | `ordering` | **🟨 PurchaseOrder**:<br/>Radicación de pedidos B2B, modificación de pedidos en estado pendiente, confirmación, despacho y entrega. | **HU4, HU5, HU6** | `INV-04` (Modificable solo PENDIENTE)<br/>`INV-05` (Transición formal de estados)<br/>`INV-06` (Mínimo 1 producto) |
+| **`cart`** | `cart` | **🟨 Cart**:<br/>Gestión de carrito de compras del cliente y detección automática de carritos abandonados tras inactividad. | **HU8** | `INV-07` (Inactividad > umbral) |
+| **`notification`** | `notification` | **🟨 NotificationRecord**:<br/>Consumidor idempotente que despacha notificaciones ante hitos de orden y recordatorios de carrito. | **HU6, HU8** | Idempotencia at-least-once |
+| **`analytics`** | `analytics` | **🟩 Proyecciones CQRS**:<br/>Read models actualizados por eventos para reportes de ventas semanales (top productos/clientes) y reposición. Exportación CSV y JSON. | **HU7, HU3** | Pureza CQRS desde Domain Events |
+| **`shared`** | `shared` | **🟪 Kernel de Resiliencia**:<br/>`outbox_events` y `processed_events` para entrega at-least-once desacoplada. | Infraestructura | Transaccionalidad atómica |
 
 ---
 

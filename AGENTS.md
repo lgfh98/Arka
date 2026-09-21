@@ -88,9 +88,13 @@ Cuando el usuario pida modelar un nuevo flujo, feature o proceso de negocio:
     - El paquete `*.domain.*` está estrictamente restringido a Java estándar.
     - PROHIBIDO importar `org.springframework.*`, `jakarta.persistence.*`, o Hibernate en el dominio. Está permitido el uso de `Lombok`
 
-2. **Límites de Agregados y Bounded Contexts**:
+2. **Límites de Agregados, Bounded Contexts y Aislamiento por Esquemas de BD**:
     - Los Agregados de diferentes Bounded Contexts se referencian exclusivamente mediante Value Objects de Identidad (e.g., `CustomerId`, `ProductId`).
     - PROHIBIDO el uso de `@ManyToOne` entre tablas de diferentes Bounded Contexts.
+    - **Aislamiento Físico por Esquemas (Database Schemas)**: Cada Bounded Context DEBE operar en su propio esquema de base de datos dedicado (e.g., `inventory.*`, `ordering.*`, `cart.*`, `notification.*`, `analytics.*`, `shared.*`).
+    - PROHIBIDO ubicar todas las tablas en un único esquema compartido por defecto (`public` o `DEFAULT`).
+    - Toda entidad JPA de persistencia DEBE declarar explícitamente su esquema: `@Table(name = "...", schema = "<context_name>")`.
+    - Las tablas del kernel de resiliencia (`outbox_events`, `processed_events`) pertenecen exclusivamente al esquema `shared`.
 
 3. **Manejo de Transacciones (Patrón Decorator)**:
     - Los servicios en `domain/service/` son POJOs puros sin anotaciones `@Service` ni `@Transactional`.

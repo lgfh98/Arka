@@ -14,7 +14,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "inventory_items")
+@Table(name = "inventory_items", schema = "inventory")
 @Getter
 @Setter
 @NoArgsConstructor

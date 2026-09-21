@@ -18,7 +18,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "outbox_events", indexes = {
+@Table(name = "outbox_events", schema = "shared", indexes = {
         @Index(name = "idx_outbox_status_created", columnList = "status, createdAt")
 })
 @Getter
