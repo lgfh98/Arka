@@ -58,6 +58,14 @@ jacoco {
     toolVersion = "0.8.13"
 }
 
+def jacocoExcludes = [
+    '**/dto/**',
+    '**/*Config.*',
+    '**/*Application.*',
+    '**/exception/**',
+    '**/*Controller.*'
+]
+
 jacocoTestReport {
     dependsOn test
     reports {
@@ -66,19 +74,18 @@ jacocoTestReport {
     }
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, exclude: [
-                '**/dto/**',
-                '**/*Config.*',
-                '**/*Application.*',
-                '**/exception/**',
-                '**/*Controller.*'
-            ])
+            fileTree(dir: it, exclude: jacocoExcludes)
         }))
     }
 }
 
 jacocoTestCoverageVerification {
     dependsOn jacocoTestReport
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: jacocoExcludes)
+        }))
+    }
     violationRules {
         rule {
             element = 'BUNDLE'

@@ -11,6 +11,18 @@
 @customerId = aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
 
 ### =========================================================================
+### 0. DOCUMENTACIÓN SWAGGER / OPENAPI 3.0
+### =========================================================================
+
+### 0.1 Descargar especificación OpenAPI en JSON (Swagger API Docs)
+GET {{baseUrl}}/v3/api-docs
+Accept: application/json
+
+### 0.2 Acceder a Swagger UI (HTML)
+GET {{baseUrl}}/swagger-ui/index.html
+Accept: text/html
+
+### =========================================================================
 ### 1. CATÁLOGO E INVENTARIO (HAPPY PATH)
 ### =========================================================================
 

@@ -166,5 +166,20 @@ class ArkaOrderAcceptanceTest {
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.title").value("Solicitud Inválida"));
         }
+
+        @Test
+        @DisplayName("Swagger OpenAPI: Debe exponer la documentación en /v3/api-docs y Swagger UI")
+        void shouldExposeOpenApiDocs() throws Exception {
+            mockMvc.perform(get("/v3/api-docs"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.openapi").exists())
+                    .andExpect(jsonPath("$.info.title").value("Arka B2B - Wholesale Distribution Platform API"))
+                    .andExpect(jsonPath("$.paths['/api/orders']").exists())
+                    .andExpect(jsonPath("$.paths['/api/products']").exists())
+                    .andExpect(jsonPath("$.paths['/api/inventory']").exists())
+                    .andExpect(jsonPath("$.paths['/api/carts/{customerId}/items']").exists())
+                    .andExpect(jsonPath("$.paths['/api/notifications']").exists())
+                    .andExpect(jsonPath("$.paths['/api/analytics/reports/sales']").exists());
+        }
     }
 }

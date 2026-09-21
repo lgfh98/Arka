@@ -109,7 +109,13 @@ Tablas clave para inspeccionar:
 * `processed_events` (Control de idempotencia en consumidores)
 * `projection_product_sales`, `projection_customer_sales`, `projection_replenishment`
 
-### 3. Ejecución de Pruebas de API con `requests.http`
+### 3. Documentación Interactiva Swagger / OpenAPI 3.0
+* **Swagger UI**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+* **OpenAPI Spec (JSON)**: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
+
+Permite inspeccionar y ejecutar interactivamente todos los endpoints clasificados por Bounded Contexts (`Inventory & Catalog`, `Ordering`, `Cart & Abandonment`, `Notification`, `Analytics & Reporting`), con esquemas de DTOs y respuestas de error estandarizadas RFC 9457 `ProblemDetail`.
+
+### 4. Ejecución de Pruebas de API con `requests.http`
 Abre el archivo [`requests.http`](requests.http) en IntelliJ IDEA, VS Code (con extensión REST Client) o tu cliente HTTP preferido y ejecuta las peticiones ordenadas por secciones:
 1. **Happy Path Catálogo e Inventario**: Registro, consulta por categorías y ajuste con auditoría.
 2. **Carrito y Carrito Abandonado**: Adición de ítems y detección automática de abandono.

@@ -6,6 +6,8 @@ import com.arka.backend.analytics.infrastructure.persistence.entity.Replenishmen
 import com.arka.backend.analytics.infrastructure.persistence.repository.CustomerSalesProjectionJpaRepository;
 import com.arka.backend.analytics.infrastructure.persistence.repository.ProductSalesProjectionJpaRepository;
 import com.arka.backend.analytics.infrastructure.persistence.repository.ReplenishmentProjectionJpaRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -19,6 +21,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "Analytics & Reporting")
 @RestController
 @RequestMapping("/api/analytics")
 @RequiredArgsConstructor
@@ -28,6 +31,7 @@ public class AnalyticsController {
     private final CustomerSalesProjectionJpaRepository customerSalesRepo;
     private final ReplenishmentProjectionJpaRepository replenishmentRepo;
 
+    @Operation(summary = "Reporte de ventas semanales", description = "Obtiene métricas agregadas de facturación, top productos y clientes en formato JSON o CSV (HU7)")
     @GetMapping("/reports/sales")
     public ResponseEntity<?> getSalesReport(@RequestParam(name = "format", defaultValue = "json") String format) {
         List<ProductSalesProjectionJpaEntity> topProducts = productSalesRepo.findAllByOrderByTotalUnitsSoldDesc();
@@ -67,6 +71,7 @@ public class AnalyticsController {
         ));
     }
 
+    @Operation(summary = "Reporte de productos por abastecer", description = "Lista productos en umbral crítico para compras y logística en JSON o CSV (HU3)")
     @GetMapping("/reports/replenishment")
     public ResponseEntity<?> getReplenishmentReport(@RequestParam(name = "format", defaultValue = "json") String format) {
         List<ReplenishmentProjectionJpaEntity> items = replenishmentRepo.findAllByOrderByCurrentStockAsc();
