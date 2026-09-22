@@ -121,3 +121,11 @@ Cuando el usuario pida modelar un nuevo flujo, feature o proceso de negocio:
         - **Guía de Flujo Transactional Outbox** (`docs/architecture/transactional-outbox-workflow.md`): Mantener explicada la fontanería de resiliencia y la guía para productores y consumidores.
         - **Portal Central `README.md`**: Diagrama de arquitectura global, desglose de Bounded Contexts, tabla de datos semilla y catálogo navegable de enlaces a toda la documentación.
         - **Documentación de Frontend** (`frontend/README.md`, si el proyecto incluye UI): Mapeo de carpetas con Bounded Contexts, reactividad (Signals), sistema de temas (Dark/Light) y proxy de desarrollo.
+
+7. **Prevención del Problema N+1 y Rendimiento de Persistencia**:
+    - **PROHIBIDO el uso de `FetchType.EAGER`** en colecciones `@OneToMany` dentro de los Agregados.
+    - Toda relación interna de un Agregado DEBE mapearse como `FetchType.LAZY`.
+    - La hidratación del Agregado en consultas de lectura de múltiples entidades DEBE realizarse mediante `@EntityGraph(attributePaths = {"..."})` o `LEFT JOIN FETCH` en Spring Data JPA para resolver la carga en un único `JOIN`.
+    - Para consultas de reportería o listados masivos, priorizar proyecciones CQRS desnormalizadas (Read Models) sin colecciones anidadas.
+    - Se debe mantener activado el procesamiento por lotes JDBC (`hibernate.jdbc.batch_size: 25`, `order_inserts: true`, `order_updates: true`) en `application.yml`.
+    - Consultar detalles técnicos y ejemplos en [docs/architecture/n-plus-one-mitigation.md](docs/architecture/n-plus-one-mitigation.md).

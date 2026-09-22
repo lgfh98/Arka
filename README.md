@@ -68,6 +68,7 @@ Toda la arquitectura se encuentra especificada en código y diagramas Mermaid in
 * 🌪️ **[Feature Storming Global (MVP)](docs/architecture/features/arka-mvp/feature-storming.mmd)**: Event Storming end-to-end con descomposición de flujos, comandos, agregados e invariantes.
 * 🔄 **[Diagramas de Secuencia](docs/architecture/sequence-diagrams.md)**: Flujos dinámicos de Happy Path, modificación de pedidos, rechazo RFC 9457 y Fan-Out asíncrono.
 * 📦 **[Guía Transactional Outbox](docs/architecture/transactional-outbox-workflow.md)**: Manual de resiliencia, esquemas SQL, publicación y consumo idempotente.
+* ⚡ **[Guía de Mitigación N+1 y Persistencia](docs/architecture/n-plus-one-mitigation.md)**: Estrategia de carga `@EntityGraph`, eliminación de `EAGER` y JDBC batching.
 * 📐 **Event Storming por Contexto**:
   * [Inventory Context](docs/architecture/contexts/inventory/event-storming.mmd)
   * [Ordering Context](docs/architecture/contexts/ordering/event-storming.mmd)

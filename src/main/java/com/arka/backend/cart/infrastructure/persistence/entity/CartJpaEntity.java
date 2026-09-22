@@ -44,7 +44,7 @@ public class CartJpaEntity {
     @Column(name = "last_activity_at", nullable = false)
     private Instant lastActivityAt;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<CartItemJpaEntity> items = new ArrayList<>();
 
